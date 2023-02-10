@@ -58,3 +58,6 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+*.dll
+EnemyRandomizerDB/EnemyRandomizerDB/Library/Assembly-CSharp.xml
+EnemyRandomizerDB/EnemyRandomizerDB/Assembly-CSharp.xml
