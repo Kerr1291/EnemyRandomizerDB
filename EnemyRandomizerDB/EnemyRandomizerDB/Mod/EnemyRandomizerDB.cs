@@ -47,7 +47,7 @@ namespace EnemyRandomizerMod
             return currentVersion;
         }
 
-        const string databaseFileName = "EnemyRandomizerDatabase.xml";
+        const string databaseFileName = "EnemyRandomizerDatabase_demo.xml";
         const string worldMapFilePrefix = "SceneData_";
 
         List<SceneData> mapFiles = new List<SceneData>();
@@ -134,7 +134,7 @@ namespace EnemyRandomizerMod
         bool buildWorldMap = false;
 
         //set this to true if you want to load and work on the database, false to start building a new database
-        bool checkSkipPreload = true;
+        bool checkSkipPreload = false; 
 
         //leave default -- never change this
         bool skipPreload;
@@ -150,7 +150,7 @@ namespace EnemyRandomizerMod
 
         //usually you will set checkSkipPreload=true, compileUniqueNames=false, and runTestAll=true  when doing debugging and development on enemy prefabs and spawners
         //this will start the test runner but not do anything until the game is entered and P is pressed to start the tests (which much of the time you might not need to do)
-        bool runTestAll = true;
+        bool runTestAll = false;
 
         //DON"T USE THIS -- currently will purge a bunch of stuff from the database using test results -- could be used to batch process different sets of failed tests later on though...
         bool updateDatabaseWithFalseTestData = false;
@@ -269,32 +269,10 @@ namespace EnemyRandomizerMod
                 return database.GetPreloadNames();
             }
 
-
-            int totalScenes = UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings;
-
-            int firstSceneToLoad = 0;
-
-            IEnumerable<string> GetAllScenes(int fromIndex, int toIndex)
-            {
-                for (int i = fromIndex; i < toIndex; ++i)
-                {
-                    string scenePath = SceneUtility.GetScenePathByBuildIndex(i);
-                    string name = Path.GetFileNameWithoutExtension(scenePath);
-                    yield return name;
-                }
-            };
-            string[] scenesToCompile = GetAllScenes(firstSceneToLoad, totalScenes).ToArray();
-
-            (string, string)[] sceneDataPairs = new (string, string)[scenesToCompile.Length];
-            for (int k = 0; k < sceneDataPairs.Length; ++k)
-            {
-                sceneDataPairs[k] = (scenesToCompile[k], "_Enemies");
-            }
-            return sceneDataPairs.ToList();
+            return base.GetPreloadNames();
         }
 
         ////NOTE: Executes AFTER get preload names
-        ///NOTE2: A scene must be present in the GetPreloadNames() AND here in PreloadSceneHooks() in order for the Func<IEnumerator> to run....
         public override (string, Func<IEnumerator>)[] PreloadSceneHooks()
         {
             if (skipPreload && !rebuildDatabase)
@@ -322,12 +300,6 @@ namespace EnemyRandomizerMod
             };
             string[] scenesToCompile = GetAllScenes(firstSceneToLoad, totalScenes).ToArray();
 
-            //Dev.Log("Scenes");
-            //for (int i = 0; i < scenesToCompile.Length; ++i)
-            //{
-            //    Dev.Log($"{scenesToCompile[i]} - {SceneUtility.GetScenePathByBuildIndex(i + firstSceneToLoad)}");
-            //}
-
             Func<IEnumerator> GetSceneCompilationMethod(string s)
             {
                 IEnumerator CaptureSceneAndCompile()
@@ -347,18 +319,18 @@ namespace EnemyRandomizerMod
                 sceneMethodPairs[k] = (scenesToCompile[k], compilationMethods[k]);
             }
 
-            //Dev.Log("Preload Hooks");
-            //for (int i = 0; i < sceneMethodPairs.Length; ++i)
-            //{
-            //    Dev.Log($"{sceneMethodPairs[i].Item1} - {sceneMethodPairs[i].Item2}");
-            //}
+            Dev.Log("Preload Hooks");
+            for (int i = 0; i < sceneMethodPairs.Length; ++i)
+            {
+                Dev.Log($"{sceneMethodPairs[i].Item1} - {sceneMethodPairs[i].Item2}");
+            }
 
             return sceneMethodPairs;
         }
 
         IEnumerator CompileScene(string sceneData)
         {
-            //Dev.Log("Compiling " + sceneData);
+            Dev.Log("Compiling " + sceneData);
             
             //Get the loaded scene since the input scene is pulled from the build data list
             Scene loadedScene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(sceneData);
@@ -397,22 +369,8 @@ namespace EnemyRandomizerMod
                 CompileGameObjectsFromResources();
             }
 
-            //CompileGameObjects(rootGameObjects.Where(x => x != null));
-
             yield return null;
         }
-
-        //void CompileGameObjects(IEnumerable<GameObject> rootObjects)
-        //{
-        //    //process literally everything
-        //    rootObjects.SelectMany(x => x.GetComponentsInChildren<Transform>()
-        //    //.Where(s =>
-        //    //{
-        //    //    return true;
-        //    //    //return s.gameObject.IsGameEnemy();
-        //    //})
-        //    .Select(y => y.gameObject)).ToList().ForEach(x =>CreateDatabaseEntry(x));
-        //}
 
         void CompileGameObjectsFromSceneObjects(GameObject[] rootGameObjects)
         {
@@ -452,20 +410,7 @@ namespace EnemyRandomizerMod
             }
 
             result.Distinct().ToList().ForEach(x => CreateDatabaseEntry(x));
-
-            //possiblePrefabs.ToList().ForEach(x => CreateDatabaseEntry(x));
-            //GenerateDatabase();
         }
-
-        //void CompileObjectsWithComponent<T>(IEnumerable<GameObject> gameObjects)
-        //    where T : MonoBehaviour
-        //{
-        //}
-
-        //void CompileObjectsWithComponents(IEnumerable<GameObject> gameObjects, List<Type> componentTypes)
-        //{
-
-        //}
 
         HashSet<string> trackedPrefab = new HashSet<string>();
         List<SceneObject> queuedAdd = new List<SceneObject>();
@@ -831,7 +776,10 @@ namespace EnemyRandomizerMod
 
             base.Initialize(preloadedObjects);
 
-            database.Initialize(preloadedObjects);
+            if (preloadedObjects != null)
+            {
+                database.Initialize(preloadedObjects);
+            }
 
             //Dev.Log("Preload loaded for us:");
             //preloadedObjects.ToList().ForEach(s =>
