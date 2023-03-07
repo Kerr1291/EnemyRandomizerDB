@@ -18,6 +18,8 @@ namespace EnemyRandomizerMod
         static string DESTROY_ON_LOAD = "DestroyOnLoad";
         static string RESOURCES = "RESOURCES";
 
+        public static Func<EnemyRandomizerDatabase> GetDatabase;
+
         /// <summary>
         /// Create this in the mod's GetPreloadNames() before returning from that method
         /// </summary>

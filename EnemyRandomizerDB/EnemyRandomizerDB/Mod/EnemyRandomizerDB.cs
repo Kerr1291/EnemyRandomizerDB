@@ -47,7 +47,7 @@ namespace EnemyRandomizerMod
             return currentVersion;
         }
 
-        const string databaseFileName = "EnemyRandomizerDatabase_demo.xml";
+        const string databaseFileName = "EnemyRandomizerDatabase.xml";
         const string worldMapFilePrefix = "SceneData_";
 
         List<SceneData> mapFiles = new List<SceneData>();
@@ -134,7 +134,7 @@ namespace EnemyRandomizerMod
         bool buildWorldMap = false;
 
         //set this to true if you want to load and work on the database, false to start building a new database
-        bool checkSkipPreload = false; 
+        bool checkSkipPreload = true; 
 
         //leave default -- never change this
         bool skipPreload;
@@ -150,7 +150,7 @@ namespace EnemyRandomizerMod
 
         //usually you will set checkSkipPreload=true, compileUniqueNames=false, and runTestAll=true  when doing debugging and development on enemy prefabs and spawners
         //this will start the test runner but not do anything until the game is entered and P is pressed to start the tests (which much of the time you might not need to do)
-        bool runTestAll = false;
+        bool runTestAll = true;
 
         //DON"T USE THIS -- currently will purge a bunch of stuff from the database using test results -- could be used to batch process different sets of failed tests later on though...
         bool updateDatabaseWithFalseTestData = false;
